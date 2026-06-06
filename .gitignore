@@ -17,13 +17,6 @@ checkpoints/
 *.pt
 *.pth
 
-# Generated assets
-assets/*.png
-assets/*.jpg
-assets/*.jpeg
-assets/*.gif
-assets/*.svg
-
 # Local environment
 .env
 .env.*
