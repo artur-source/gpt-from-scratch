@@ -38,7 +38,7 @@ def main() -> None:
     checkpoint = load_checkpoint()
 
     tokenizer = CharacterTokenizer(checkpoint["vocab"])
-    model = build_model(checkpoint["vocab_size"])
+    model = build_model(checkpoint["vocab_size"], checkpoint.get("config"))
     model.load_state_dict(checkpoint["model_state"])
     model.eval()
 

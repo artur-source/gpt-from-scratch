@@ -48,6 +48,7 @@ class Head(nn.Module):
         weights = query @ key.transpose(-2, -1) * key.shape[-1] ** -0.5
         weights = weights.masked_fill(self.tril[:time_steps, :time_steps] == 0, float("-inf"))
         weights = F.softmax(weights, dim=-1)
+        self.last_attention_weights = weights.detach()
         weights = self.dropout(weights)
 
         value = self.value(x)
@@ -80,6 +81,10 @@ class MultiHeadAttention(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Return multi-head attention output with shape (batch, time, n_embd)."""
         out = torch.cat([head(x) for head in self.heads], dim=-1)
+        self.last_attention_weights = torch.stack(
+            [head.last_attention_weights for head in self.heads],
+            dim=1,
+        )
         return self.dropout(self.proj(out))
 
 
@@ -135,6 +140,11 @@ class Block(nn.Module):
         self.ff = FeedForward(n_embd=n_embd, dropout=dropout)
         self.ln1 = nn.LayerNorm(n_embd)
         self.ln2 = nn.LayerNorm(n_embd)
+
+    @property
+    def attn(self) -> MultiHeadAttention:
+        """Expose the self-attention module for hooks and visualization notebooks."""
+        return self.sa
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Return the block output with shape (batch, time, n_embd)."""

@@ -107,9 +107,17 @@ class GPTLanguageModel(nn.Module):
         return idx
 
 
-def build_model(vocab_size: int) -> GPTLanguageModel:
-    """Instantiate GPTLanguageModel, initialize trainable weights, and return it on config.device."""
-    model = GPTLanguageModel(vocab_size=vocab_size)
+def build_model(vocab_size: int, model_config: dict | None = None) -> GPTLanguageModel:
+    """Instantiate GPTLanguageModel, initialize trainable weights, and return it on the right device."""
+    cfg = model_config or {}
+    model = GPTLanguageModel(
+        vocab_size=vocab_size,
+        n_embd=cfg.get("n_embd", config.n_embd),
+        n_head=cfg.get("n_head", config.n_head),
+        n_layer=cfg.get("n_layer", config.n_layer),
+        block_size=cfg.get("block_size", config.block_size),
+        dropout=cfg.get("dropout", config.dropout),
+    )
     model.apply(_init_weights)
     model.lm_head.weight = model.token_embedding.weight
     return model.to(config.device)
